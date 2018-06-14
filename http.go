@@ -216,14 +216,14 @@ func NewHTTPRequest(config *Config) (request *http.Request, err error) {
 		body = bytes.NewReader(config.bodyContent)
 	}
 
-	request, err = http.NewRequest(config.method, config.url, body)
+	request, err = http.NewRequest(config.method, ExpGenerate(config.url), body)
 
 	if err != nil {
 		return
 	}
 
-	request.Header.Set("Content-Type", config.contentType)
-	request.Header.Set("User-Agent", config.userAgent)
+	request.Header.Set("Content-Type", ExpGenerate(config.contentType))
+	request.Header.Set("User-Agent", ExpGenerate(config.userAgent))
 
 	if config.keepAlive {
 		request.Header.Set("Connection", "keep-alive")
@@ -231,29 +231,31 @@ func NewHTTPRequest(config *Config) (request *http.Request, err error) {
 
 	for _, header := range config.headers {
 		pair := strings.Split(header, ":")
-		request.Header.Add(pair[0], pair[1])
+		request.Header.Add(pair[0], ExpGenerate(pair[1]))
 	}
 
 	for _, cookie := range config.cookies {
 		pair := strings.Split(cookie, "=")
-		c := &http.Cookie{Name: pair[0], Value: pair[1]}
+		c := &http.Cookie{Name: pair[0], Value: ExpGenerate(pair[1])}
 		request.AddCookie(c)
 	}
 
 	if config.basicAuthentication != "" {
 		pair := strings.Split(config.basicAuthentication, ":")
-		request.SetBasicAuth(pair[0], pair[1])
+		request.SetBasicAuth(pair[0], ExpGenerate(pair[1]))
 	}
 
 	return
 }
 
 func CopyHTTPRequest(config *Config, request *http.Request) *http.Request {
-	newRequest := *request
-	if request.Body != nil {
-		newRequest.Body = ioutil.NopCloser(bytes.NewReader(config.bodyContent))
-	}
-	return &newRequest
+	newRequest, _ := NewHTTPRequest(config)
+	return newRequest
+	// newRequest := *request
+	// if request.Body != nil {
+	// 	newRequest.Body = ioutil.NopCloser(bytes.NewReader(config.bodyContent))
+	// }
+	// return &newRequest
 }
 
 type LengthError struct {

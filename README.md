@@ -6,6 +6,30 @@ Go-HttpBench
 
 *an ab-like benchmark tool run on multi-core cpu*
 
+*注意！这个版本是在原版基础上修改过的, 加入了随机化表达式, 支持一定格式的随机化参数请求*
+
+随机化表达式参考  
+  - [Simple generator for Golang](https://gist.github.com/mfojtik/a0018e29d803a6e2ba0c)
+
+以下举例说明
+```bash
+随机化表达式说明:
+@{[0-9a-zA-Z]{n}}: 一个随机化表达式@{}， 表达的含义是在集合'[]'的字符集中选出'n'个字符
+
+# 随机化URL： 将参数md5随机化，用户名以test_为前缀的随机化
+gb -c 100 -n 100000 -k 'http://localhost/get?md5=@{[0-9a-f]{32}}&user=test_@{[0-9]{4}}'
+
+# 随机化COOKIE： 将参数session随机化
+gb -c 100 -n 100000 -k 'http://localhost/api/do' -C 'session=@{[0-9a-f]{32}}'
+
+# 随机化HEADER： 将参数token随机化
+gb -c 100 -n 100000 -k 'http://localhost/api/do' -H 'token=@{[0-9a-f]{32}}'
+
+# 将COOKIE， HEADER, URL都随机化
+gb -c 100 -n 100000 -k -C 'session=@{[0-9a-f]{32}}' -H 'token=@{[0-9a-f]{32}}' 'http://localhost/get?md5=@{[0-9a-f]{32}}&user=test_@{[0-9]{4}}'
+```
+
+
 Installation
 --------------
 1. install [Go](http://golang.org/doc/install) into your environment
